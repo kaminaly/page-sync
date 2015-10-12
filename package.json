@@ -1,0 +1,32 @@
+{
+  "name": "page-sync",
+  "version": "0.1.0",
+  "description": "This adds sync feature to page.js.",
+  "main": "index.js",
+  "scripts": {
+    "build": "coffee -bc index.coffee",
+    "test": "coffee test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://kaminaly@github.com/kaminaly/page-sync.git"
+  },
+  "keywords": [
+    "page",
+    "router",
+    "sync",
+    "transition"
+  ],
+  "author": "kaminaly",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kaminaly/page-sync/issues"
+  },
+  "homepage": "https://github.com/kaminaly/page-sync",
+  "devDependencies": {
+    "bluebird": "^2.10.2",
+    "coffee-script": "^1.10.0",
+    "jsdom": "^3.1.2",
+    "page": "^1.6.3"
+  }
+}

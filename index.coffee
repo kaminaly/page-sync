@@ -24,18 +24,7 @@ module.exports = (page, Promise)->
             ctx = _contexts.shift()
             # console.log 'page shift', _contexts.length
 
-            waiting = 0
-            wait = ->
-                waiting++
-                ->
-                    waiting--
-                    resolve() if waiting == 0
-
-            ctx.sync =
-                done: resolve
-                wait: wait
-
-            _dispatch ctx
+            _dispatch ctx, resolve
 
         .then _process
 
@@ -44,7 +33,7 @@ module.exports = (page, Promise)->
     # maybe `page.current` and `ctx.handled` don't work.
     # So i can't use `_dispatch = page.dispatch`.
     prevContext = null
-    _dispatch = (ctx)->
+    _dispatch = (ctx, done = ->)->
         prev = prevContext
         i = 0
         j = 0
@@ -52,19 +41,19 @@ module.exports = (page, Promise)->
         prevContext = ctx
 
         nextExit = ->
-          fn = page.exits[j++]
-          if !fn then return nextEnter()
-          fn prev, nextExit
+            fn = page.exits[j++]
+            if !fn then return nextEnter()
+            fn prev, nextExit
 
         nextEnter = ->
-          fn = page.callbacks[i++]
-          if !fn then return
-          fn ctx, nextEnter
+            fn = page.callbacks[i++]
+            if !fn then return done()
+            fn ctx, nextEnter
 
         if prev
-          nextExit()
+            nextExit()
         else
-          nextEnter()
+            nextEnter()
 
     page.sync = true
     page.dispatch = (ctx)->
@@ -76,8 +65,18 @@ module.exports = (page, Promise)->
                 _isProcessing = true
                 _process()
         else
-            ctx.sync =
-                done: ->
-                wait: ->
             _dispatch ctx
 
+    # multiple route matching bug fix.
+    page.Route.prototype.middleware = (fn)->
+        self = this
+        (ctx, next)->
+            if !ctx.match && self.match ctx.path, ctx.params
+                ctx.match = self.path
+
+            if ctx.match == self.path
+                fn ctx, next
+            else
+                next()
+
+    return

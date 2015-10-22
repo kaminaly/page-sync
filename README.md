@@ -21,7 +21,7 @@ pageSync(page, Promise);
 ```
 
 ### example
-you have to execute `ctx.sync.done()` when your sequence completes.
+you have to execute `next()` when every action completes.
 ```js
 var start = function(ctx, next) {
   console.log(ctx.path + ': start');
@@ -35,7 +35,7 @@ var delay = function(ctx, next) {
 
 var end = function(ctx, next) {
   console.log(ctx.path + ': end');
-  ctx.sync.done();
+  next();
 }
 
 page('/a', start, delay, end);
@@ -52,46 +52,6 @@ page('/b');
 // /b: start
 // /b: delay
 // /b: end
-```
-
-### wait
-if you need multiple async function, you can use `ctx.sync.wait()` instead of using `ctx.sync.done()`.
-```js
-var wait = function(ctx, next) {
-  console.log(ctx.path + ': wait');
-  var done1 = ctx.sync.wait();
-  setTimeout(function() {
-    console.log(ctx.path + ': wait done1');
-    done1();
-  }, 300);
-  var done2 = ctx.sync.wait();
-  setTimeout(function() {
-    console.log(ctx.path + ': wait done2 maybe end');
-    done2();
-  }, 1000);
-  var done3 = ctx.sync.wait();
-  setTimeout(function() {
-    console.log(ctx.path + ': wait done3');
-    done3();
-  }, 600);
-}
-
-page('/a', wait);
-page('/b', wait);
-
-// page moves
-page('/a');
-page('/b');
-
-// output
-// /a: wait
-// /a: wait done1
-// /a: wait done3
-// /a: wait done2 maybe end
-// /b: wait
-// /b: wait done1
-// /b: wait done3
-// /b: wait done2 maybe end
 ```
 
 ## License

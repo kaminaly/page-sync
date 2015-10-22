@@ -1,6 +1,6 @@
 {
   "name": "page-sync",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "This adds sync feature to page.js.",
   "main": "index.js",
   "scripts": {

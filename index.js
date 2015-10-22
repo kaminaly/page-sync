@@ -24,28 +24,17 @@ module.exports = function(page, Promise) {
       return;
     }
     return new Promise(function(resolve, reject) {
-      var ctx, wait, waiting;
+      var ctx;
       ctx = _contexts.shift();
-      waiting = 0;
-      wait = function() {
-        waiting++;
-        return function() {
-          waiting--;
-          if (waiting === 0) {
-            return resolve();
-          }
-        };
-      };
-      ctx.sync = {
-        done: resolve,
-        wait: wait
-      };
-      return _dispatch(ctx);
+      return _dispatch(ctx, resolve);
     }).then(_process);
   };
   prevContext = null;
-  _dispatch = function(ctx) {
+  _dispatch = function(ctx, done) {
     var i, j, nextEnter, nextExit, prev;
+    if (done == null) {
+      done = function() {};
+    }
     prev = prevContext;
     i = 0;
     j = 0;
@@ -62,7 +51,7 @@ module.exports = function(page, Promise) {
       var fn;
       fn = page.callbacks[i++];
       if (!fn) {
-        return;
+        return done();
       }
       return fn(ctx, nextEnter);
     };
@@ -73,7 +62,7 @@ module.exports = function(page, Promise) {
     }
   };
   page.sync = true;
-  return page.dispatch = function(ctx) {
+  page.dispatch = function(ctx) {
     if (page.sync) {
       if (ctx.path !== page.current) {
         ctx.handled = false;
@@ -84,11 +73,21 @@ module.exports = function(page, Promise) {
         return _process();
       }
     } else {
-      ctx.sync = {
-        done: function() {},
-        wait: function() {}
-      };
       return _dispatch(ctx);
     }
+  };
+  page.Route.prototype.middleware = function(fn) {
+    var self;
+    self = this;
+    return function(ctx, next) {
+      if (!ctx.match && self.match(ctx.path, ctx.params)) {
+        ctx.match = self.path;
+      }
+      if (ctx.match === self.path) {
+        return fn(ctx, next);
+      } else {
+        return next();
+      }
+    };
   };
 };
